@@ -43,6 +43,7 @@ services:
           http://localhost:8080
     volumes:
       - kestra-storage:/app/storage
+      - ./kestra/flows:/app/flows:ro
     depends_on:
       - kestra-db
 
