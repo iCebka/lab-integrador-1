@@ -19,15 +19,14 @@ clean-targets:
 
 models:
   nyc_taxi:
-
     bronze:
       +materialized: view
-      +schema: BRONZE
+      +schema: "{{ env_var('DBT_BRONZE_SCHEMA', 'BRONZE') }}"
 
     silver:
       +materialized: table
-      +schema: SILVER
+      +schema: "{{ env_var('DBT_SILVER_SCHEMA', 'SILVER') }}"
 
     gold:
       +materialized: table
-      +schema: GOLD
+      +schema: "{{ env_var('DBT_GOLD_SCHEMA', 'GOLD') }}"
