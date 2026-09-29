@@ -11,7 +11,10 @@ services:
 
   
   kestra:
-    image: kestra/kestra:v1.3.37
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lab-integrador-kestra:1.3.37
     user: "root"
     command: ["server", "standalone"]
     ports:
@@ -29,6 +32,12 @@ services:
       ENV_SNOWFLAKE_BRONZE_SCHEMA: ${SNOWFLAKE_BRONZE_SCHEMA}
       ENV_SNOWFLAKE_SILVER_SCHEMA: ${SNOWFLAKE_SILVER_SCHEMA}
       ENV_SNOWFLAKE_GOLD_SCHEMA: ${SNOWFLAKE_GOLD_SCHEMA}
+
+      DBT_RAW_SCHEMA: ${SNOWFLAKE_RAW_SCHEMA}
+      DBT_BRONZE_SCHEMA: ${SNOWFLAKE_BRONZE_SCHEMA}
+      DBT_SILVER_SCHEMA: ${SNOWFLAKE_SILVER_SCHEMA}
+      DBT_GOLD_SCHEMA: ${SNOWFLAKE_GOLD_SCHEMA}
+
       KESTRA_CONFIGURATION: &common_conf |
         datasources:
           postgres:
@@ -52,7 +61,7 @@ services:
           tasks:
             tmp-dir:
               path: /tmp/kestra-wd-tmp
-        url: http://localhost:8080
+          url: http://localhost:8080
 
         micronaut:
           io:
@@ -64,6 +73,7 @@ services:
     volumes:
       - kestra-storage:/app/storage
       - ./kestra/flows:/app/flows
+      - ./:/workspace/project:ro
     depends_on:
       - kestra-db
 
