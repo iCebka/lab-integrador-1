@@ -199,3 +199,28 @@ tasks:
       - id: delete_download
         type: io.kestra.plugin.core.storage.Delete
         uri: "{{ outputs.extract[taskrun.value].uri }}"
+
+  - id: dbt_build
+    type: io.kestra.plugin.dbt.cli.DbtCLI
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    profiles: |
+      default:
+        target: prod
+        outputs:
+          prod:
+            type: snowflake
+            account: "{{ envs.snowflake_account }}"
+            user: "{{ envs.snowflake_user }}"
+            password: "{{ envs.snowflake_password }}"
+            role: "{{ envs.snowflake_role }}"
+            warehouse: "{{ envs.snowflake_warehouse }}"
+            database: "{{ envs.snowflake_database }}"
+            schema: "{{ envs.snowflake_raw_schema }}"
+            threads: 8
+    commands:
+      - >-
+        dbt build
+        --project-dir /workspace/project
+        --target-path /tmp/dbt-target-{{ execution.id }}
+        --log-path /tmp/dbt-logs-{{ execution.id }}
