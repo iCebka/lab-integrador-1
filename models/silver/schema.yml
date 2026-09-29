@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: slv_yellow_taxi_trips
+    description: >
+      Cleaned, typed and deduplicated Yellow Taxi trip records.
+
+    columns:
+      - name: source_file
+        tests:
+          - not_null
+
+      - name: source_row_number
+        tests:
+          - not_null
+
+      - name: vendor_id
+        tests:
+          - not_null
+
+      - name: pickup_datetime
+        tests:
+          - not_null
+
+      - name: dropoff_datetime
+        tests:
+          - not_null
