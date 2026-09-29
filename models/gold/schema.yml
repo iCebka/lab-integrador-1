@@ -1,0 +1,124 @@
+version: 2
+
+models:
+
+  - name: dim_vendor
+    description: Distinct vendor identifiers present in the Yellow Taxi dataset.
+    columns:
+      - name: vendor_key
+        description: Primary key identifying a vendor.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_payment
+    description: Distinct payment type identifiers present in the Yellow Taxi dataset.
+    columns:
+      - name: payment_key
+        description: Primary key identifying a payment type.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_rate_code
+    description: Distinct rate code identifiers used by Yellow Taxi trips.
+    columns:
+      - name: rate_code_key
+        description: Primary key identifying a rate code, including the technical key -1 for unreported values.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_zone
+    description: Distinct pickup and dropoff location identifiers present in the dataset.
+    columns:
+      - name: zone_key
+        description: Primary key identifying a taxi location.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_date
+    description: Calendar dimension derived from valid pickup and dropoff dates.
+    columns:
+      - name: date_key
+        description: Primary key in YYYYMMDD format.
+        data_tests:
+          - not_null
+          - unique
+
+  - name: fact_trips
+    description: >
+      One row per deduplicated Yellow Taxi trip considered valid
+      for analytical use.
+
+    columns:
+
+      - name: trip_key
+        description: Deterministic primary key for a trip.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: vendor_key
+        description: Foreign key to dim_vendor.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_vendor')
+                field: vendor_key
+
+      - name: payment_key
+        description: Foreign key to dim_payment.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_payment')
+                field: payment_key
+
+      - name: rate_code_key
+        description: Foreign key to dim_rate_code.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_rate_code')
+                field: rate_code_key
+
+      - name: pickup_zone_key
+        description: Pickup location foreign key to dim_zone.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_zone')
+                field: zone_key
+
+      - name: dropoff_zone_key
+        description: Dropoff location foreign key to dim_zone.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_zone')
+                field: zone_key
+
+      - name: pickup_date_key
+        description: Pickup date foreign key to dim_date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+
+      - name: dropoff_date_key
+        description: Dropoff date foreign key to dim_date.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
