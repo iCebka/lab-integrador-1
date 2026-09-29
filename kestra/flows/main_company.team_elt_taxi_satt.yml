@@ -1,0 +1,7 @@
+id: elt_taxi_satt
+namespace: company.team
+
+tasks:
+  - id: extract
+    type: io.kestra.plugin.core.http.Download
+    uri: https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet
