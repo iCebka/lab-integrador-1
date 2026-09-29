@@ -12,7 +12,7 @@ deduplicated as (
 
     qualify row_number() over (
         partition by hash(raw_record)
-        order by loaded_at, source_file, source_row_number
+        order by source_file, source_row_number
     ) = 1
 
 ),
@@ -20,8 +20,7 @@ deduplicated as (
 typed as (
 
     select
-        raw_record:"VendorID"::integer
-            as vendor_id,
+        raw_record:"VendorID"::integer as vendor_id,
 
         to_timestamp_ntz(
             raw_record:"tpep_pickup_datetime"::number,
@@ -42,8 +41,9 @@ typed as (
         raw_record:"RatecodeID"::integer
             as ratecode_id,
 
-        raw_record:"store_and_fwd_flag"::varchar
-            as store_and_fwd_flag,
+        upper(trim(
+            raw_record:"store_and_fwd_flag"::varchar
+        )) as store_and_fwd_flag,
 
         raw_record:"PULocationID"::integer
             as pickup_location_id,
@@ -54,34 +54,34 @@ typed as (
         raw_record:"payment_type"::integer
             as payment_type,
 
-        raw_record:"fare_amount"::float
+        raw_record:"fare_amount"::number(18, 2)
             as fare_amount,
 
-        raw_record:"extra"::float
+        raw_record:"extra"::number(18, 2)
             as extra,
 
-        raw_record:"mta_tax"::float
+        raw_record:"mta_tax"::number(18, 2)
             as mta_tax,
 
-        raw_record:"tip_amount"::float
+        raw_record:"tip_amount"::number(18, 2)
             as tip_amount,
 
-        raw_record:"tolls_amount"::float
+        raw_record:"tolls_amount"::number(18, 2)
             as tolls_amount,
 
-        raw_record:"improvement_surcharge"::float
+        raw_record:"improvement_surcharge"::number(18, 2)
             as improvement_surcharge,
 
-        raw_record:"total_amount"::float
+        raw_record:"total_amount"::number(18, 2)
             as total_amount,
 
-        raw_record:"congestion_surcharge"::float
+        raw_record:"congestion_surcharge"::number(18, 2)
             as congestion_surcharge,
 
-        raw_record:"Airport_fee"::float
+        raw_record:"Airport_fee"::number(18, 2)
             as airport_fee,
 
-        raw_record:"cbd_congestion_fee"::float
+        raw_record:"cbd_congestion_fee"::number(18, 2)
             as cbd_congestion_fee,
 
         source_file,
@@ -93,58 +93,66 @@ typed as (
 
 ),
 
-quality as (
+validated as (
 
     select
+        md5(
+            source_file || '|' || source_row_number
+        ) as trip_key,
+
         *,
 
-        case
-            when dropoff_datetime > pickup_datetime
-            then datediff(
-                second,
-                pickup_datetime,
-                dropoff_datetime
-            )
-        end as trip_duration_seconds,
-
-        dropoff_datetime < pickup_datetime
-            as has_reverse_duration,
-
-        dropoff_datetime = pickup_datetime
-            as has_zero_duration,
-
-        total_amount < 0
-            as has_negative_total,
-
-        fare_amount < 0
-            as has_negative_fare,
-
-        pickup_datetime < dateadd(
-            day,
-            -1,
-            to_date(source_period || '-01')
-        )
-        or
-        pickup_datetime >= dateadd(
-            day,
-            1,
-            dateadd(
-                month,
-                1,
-                to_date(source_period || '-01')
-            )
-        ) as has_invalid_source_date
+        datediff(
+            second,
+            pickup_datetime,
+            dropoff_datetime
+        ) as trip_duration_seconds
 
     from typed
 
 )
 
-select
-    *,
+select *
+from validated
 
-    not (
-        has_reverse_duration
-        or has_invalid_source_date
-    ) as is_valid_for_analysis
+where
+    vendor_id is not null
 
-from quality
+    and pickup_datetime is not null
+    and dropoff_datetime is not null
+
+    and passenger_count is not null
+    and trip_distance is not null
+    and ratecode_id is not null
+    and store_and_fwd_flag is not null
+
+    and pickup_location_id is not null
+    and dropoff_location_id is not null
+    and payment_type is not null
+
+    and fare_amount is not null
+    and extra is not null
+    and mta_tax is not null
+    and tip_amount is not null
+    and tolls_amount is not null
+    and improvement_surcharge is not null
+    and total_amount is not null
+    and congestion_surcharge is not null
+    and airport_fee is not null
+    and cbd_congestion_fee is not null
+
+    and store_and_fwd_flag in ('Y', 'N')
+
+    and dropoff_datetime > pickup_datetime
+
+    and to_char(pickup_datetime, 'YYYY-MM') = source_period
+
+    and trip_distance between 0 and 1000
+
+    and passenger_count between 0 and 20
+
+    and pickup_location_id > 0
+    and dropoff_location_id > 0
+
+    and fare_amount >= 0
+    and total_amount >= 0

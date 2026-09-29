@@ -1,27 +1,82 @@
 version: 2
 
 models:
+
   - name: slv_yellow_taxi_trips
     description: >
-      Cleaned, typed and deduplicated Yellow Taxi trip records.
+      Cleaned, typed and deduplicated Yellow Taxi trips satisfying
+      the Silver data-quality rules.
 
     columns:
-      - name: source_file
-        tests:
-          - not_null
 
-      - name: source_row_number
-        tests:
+      - name: trip_key
+        data_tests:
           - not_null
+          - unique
 
       - name: vendor_id
-        tests:
+        data_tests:
           - not_null
 
       - name: pickup_datetime
-        tests:
+        data_tests:
           - not_null
 
       - name: dropoff_datetime
-        tests:
+        data_tests:
+          - not_null
+
+      - name: passenger_count
+        data_tests:
+          - not_null
+
+      - name: trip_distance
+        data_tests:
+          - not_null
+
+      - name: ratecode_id
+        data_tests:
+          - not_null
+
+      - name: store_and_fwd_flag
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Y', 'N']
+
+      - name: pickup_location_id
+        data_tests:
+          - not_null
+
+      - name: dropoff_location_id
+        data_tests:
+          - not_null
+
+      - name: payment_type
+        data_tests:
+          - not_null
+
+      - name: fare_amount
+        data_tests:
+          - not_null
+
+      - name: total_amount
+        data_tests:
+          - not_null
+
+      - name: source_file
+        data_tests:
+          - not_null
+
+      - name: source_row_number
+        data_tests:
+          - not_null
+
+      - name: source_period
+        data_tests:
+          - not_null
+
+      - name: loaded_at
+        data_tests:
           - not_null
