@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ target.database }}"
+    schema: "{{ env_var('DBT_RAW_SCHEMA', 'RAW') }}"
+
+    tables:
+      - name: yellow_taxi_trips
+        identifier: YELLOW_TAXI_TRIPS
